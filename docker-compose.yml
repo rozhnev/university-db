@@ -1,0 +1,61 @@
+services:
+
+  # ── MariaDB 11.7 with University DB schema + seed data ──────────────────
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: university-db:11.7
+    container_name: university-db
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE:      ${MARIADB_DATABASE}
+      MARIADB_USER:          ${MARIADB_USER}
+      MARIADB_PASSWORD:      ${MARIADB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - university_data:/var/lib/mysql
+      - university_logs:/var/log/mysql
+    healthcheck:
+      # healthcheck.sh is bundled in the official mariadb image
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s   # schema + seed take time on first boot
+
+  # ── Python data generator (runs once after DB is healthy) ───────────────
+  generator:
+    build:
+      context: .
+      dockerfile: Dockerfile.generator
+    image: university-generator:latest
+    container_name: university-generator
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    command:
+      - "--host"
+      - "db"
+      - "--port"
+      - "3306"
+      - "--user"
+      - "${MARIADB_USER}"
+      - "--password"
+      - "${MARIADB_PASSWORD}"
+      - "--database"
+      - "${MARIADB_DATABASE}"
+      - "--seed"
+      - "${GENERATOR_SEED:-42}"
+    # Exits with code 0 when done — compose does not restart it
+    restart: "no"
+
+volumes:
+  university_data:
+    driver: local
+  university_logs:
+    driver: local

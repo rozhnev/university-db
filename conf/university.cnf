@@ -1,0 +1,23 @@
+[mysqld]
+# Character set
+character-set-server  = utf8mb4
+collation-server      = utf8mb4_unicode_ci
+
+# VECTOR(1536) = 1536 × 4 bytes per value; batch inserts need headroom
+max_allowed_packet    = 256M
+
+# InnoDB
+innodb_buffer_pool_size = 512M
+innodb_file_per_table   = ON
+
+# Fulltext search minimum word length
+ft_min_word_len         = 2
+innodb_ft_min_token_size = 2
+
+# Logging (helpful for learning query analysis)
+slow_query_log          = ON
+slow_query_log_file     = /var/log/mysql/slow.log
+long_query_time         = 1
+
+[client]
+default-character-set = utf8mb4
