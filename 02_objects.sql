@@ -401,6 +401,7 @@ BEGIN
     DECLARE v_status      VARCHAR(20);
     DECLARE v_course_id   SMALLINT UNSIGNED;
     DECLARE v_missing_prereq VARCHAR(150) DEFAULT NULL;
+    DECLARE v_msg         VARCHAR(200);
 
     -- Check section is open
     SELECT status, course_id
@@ -443,8 +444,8 @@ BEGIN
     LIMIT 1;
 
     IF v_missing_prereq IS NOT NULL THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = CONCAT('Missing prerequisite: ', v_missing_prereq);
+        SET v_msg = CONCAT('Missing prerequisite: ', v_missing_prereq);
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = v_msg;
     END IF;
 
     -- Insert enrollment (capacity check is handled by trigger)
