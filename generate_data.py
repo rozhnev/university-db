@@ -27,7 +27,6 @@ import argparse
 import json
 import math
 import random
-import struct
 from datetime import date, datetime, timedelta
 
 import numpy as np
@@ -79,20 +78,30 @@ def normal_score(mean=75.0, std=12.0, low=20.0, high=100.0) -> float:
     return float(np.clip(np.random.normal(mean, std), low, high))
 
 
-def synthetic_unit_vector(dims: int = 1536) -> bytes:
+def synthetic_unit_vector(dims: int = 1536) -> str:
     """
-    Returns a random unit vector as MariaDB VECTOR binary format.
-    MariaDB stores VECTOR(N) as N * 4 bytes of IEEE 754 float32 (little-endian).
+    Returns a random unit vector as a VEC_FromText-compatible JSON array string.
+    mysql-connector-python sends raw bytes as strings, which MariaDB rejects for
+    VECTOR columns; passing a text array via VEC_FromText(%s) is reliable.
     """
     v = np.random.randn(dims).astype(np.float32)
     v /= np.linalg.norm(v)
-    return struct.pack(f"<{dims}f", *v)
+    return "[" + ",".join(f"{x:.8g}" for x in v) + "]"
 
 
-def batch_insert(table: str, columns: list[str], rows: list[tuple], batch: int = 500) -> None:
+def batch_insert(
+    table: str,
+    columns: list[str],
+    rows: list[tuple],
+    batch: int = 500,
+    col_exprs: dict[str, str] | None = None,
+) -> None:
     if not rows:
         return
-    placeholders = ", ".join(["%s"] * len(columns))
+    placeholders = ", ".join(
+        col_exprs[c] if col_exprs and c in col_exprs else "%s"
+        for c in columns
+    )
     sql = f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({placeholders})"
     for i in range(0, len(rows), batch):
         cur.executemany(sql, rows[i : i + batch])
@@ -329,6 +338,7 @@ batch_insert(
     "courses",
     ["department_id","code","title","credits","level","description","is_active","embedding"],
     unique_course_rows,
+    col_exprs={"embedding": "VEC_FromText(%s)"},
 )
 
 cur.execute("SELECT course_id, department_id, level FROM courses")
@@ -381,8 +391,7 @@ SCHEDULE_TEMPLATES = [
     [{"day": "Mon", "start": "17:00", "end": "20:00"}],
 ]
 
-online_room_id = next(r[0] for r in rooms if r[2] == "online" if True else None
-                      for r in rooms if r[2] == "online")
+online_room_id = next((r[0] for r in rooms if r[2] == "online"), None)
 
 section_rows: list[tuple] = []
 section_meta: list[dict] = []  # for later enrollment generation
@@ -450,6 +459,7 @@ section_dates = {r[0]: (r[1], r[2]) for r in cur.fetchall()}
 print("\n[6/9] Generating enrollments …")
 enrollment_rows: list[tuple] = []
 enrolled_pairs: set[tuple] = set()  # (student_id, section_id)
+section_enroll_count: dict[int, int] = {}  # section_id → enrollments added so far
 
 # Distribute students across semesters based on their enrollment_date
 student_map = {s[0]: s[2] for s in students_db}  # student_id → enrollment_date
@@ -473,7 +483,10 @@ for student_id, dept_id, enroll_date in students_db:
             sec_id, course_id, _, capacity, sec_status = section
             if (student_id, sec_id) in enrolled_pairs:
                 continue
+            if section_enroll_count.get(sec_id, 0) >= capacity:
+                continue
             enrolled_pairs.add((student_id, sec_id))
+            section_enroll_count[sec_id] = section_enroll_count.get(sec_id, 0) + 1
 
             enrolled_at = rand_date(sem_start - timedelta(days=14), sem_start + timedelta(days=7))
 
