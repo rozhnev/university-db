@@ -194,6 +194,18 @@ Window functions (`RANK`, `DENSE_RANK`, `ROW_NUMBER`, `LAG`, `LEAD`, running `SU
 
 ---
 
+## Practice Online
+
+University DB is used as the sample database for SQL exercises on [sqltest.online](https://sqltest.online), e.g. [Find Publications — Full-Text Search](https://sqltest.online/ru/question/university-db/find-publications-fulltext-search).
+
+It's also available as a ready-to-use sandbox database on:
+
+- [sqlize.online](https://sqlize.online/sql/mariadb118_university/4bf424bdf64dc78323eb9dda595b41d2/) — run SQL queries against University DB directly in the browser
+
+- [phpize.online](https://phpize.online/sql/mariadb118_university/7dd7fec9e3dd7a230be94673d407aeeb/php/php81/ef8b615d40fcc762096fa093937c4b62/) — PHP 8.1 + University DB sandbox for testing PHP/SQL code together
+
+---
+
 ## Project Structure
 
 ```
