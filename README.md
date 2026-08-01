@@ -202,7 +202,7 @@ It's also available as a ready-to-use sandbox database on:
 
 - [sqlize.online](https://sqlize.online/sql/mariadb118_university/4bf424bdf64dc78323eb9dda595b41d2/) — run SQL queries against University DB directly in the browser
 
-- [phpize.online](https://phpize.online/sql/mariadb118_university/7dd7fec9e3dd7a230be94673d407aeeb/php/php81/ef8b615d40fcc762096fa093937c4b62/) — PHP 8.1 + University DB sandbox for testing PHP/SQL code together
+- [phpize.online](https://phpize.online/sql/mariadb118_university/7dd7fec9e3dd7a230be94673d407aeeb/php/php81/ef8b615d40fcc762096fa093937c4b62/) — PHP + SQL sandbox for testing PHP/SQL code together
 
 ---
 
