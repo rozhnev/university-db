@@ -17,6 +17,8 @@ services:
     ports:
       - "3306:3306"
     volumes:
+      - ./conf:/etc/mysql/conf.d:ro
+      - ./initdb:/docker-entrypoint-initdb.d:ro
       - university_data:/var/lib/mysql
       - university_logs:/var/log/mysql
     healthcheck:
