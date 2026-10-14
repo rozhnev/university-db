@@ -1,11 +1,8 @@
 services:
 
-  # ── MariaDB 11.7 with University DB schema + seed data ──────────────────
+  # ── MariaDB LTS with University DB schema + seed data ──────────────────
   db:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: university-db:11.7
+    image: mariadb:lts
     container_name: university-db
     restart: unless-stopped
     env_file: .env
@@ -17,6 +14,8 @@ services:
     ports:
       - "3306:3306"
     volumes:
+      - ./conf:/etc/mysql/conf.d:ro
+      - ./initdb:/docker-entrypoint-initdb.d:ro
       - university_data:/var/lib/mysql
       - university_logs:/var/log/mysql
     healthcheck:

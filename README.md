@@ -71,9 +71,9 @@ Data is persisted in a named Docker volume (`university_data`), so restarting th
 
 ```bash
 # Load schema and static data
-mysql -u root -p < 01_schema.sql
-mysql -u root -p < 02_objects.sql
-mysql -u root -p < 03_seed_small.sql
+mysql -u root -p < initdb/01_schema.sql
+mysql -u root -p < initdb/02_objects.sql
+mysql -u root -p < initdb/03_seed_small.sql
 
 # Install Python dependencies
 pip install faker mysql-connector-python numpy
@@ -216,9 +216,10 @@ university-db/
 ├── .env.example            # Environment variable template
 ├── conf/
 │   └── university.cnf      # MariaDB configuration (charset, packet size, slow log)
-├── 01_schema.sql           # DDL — 16 tables, indexes, FK constraints
-├── 02_objects.sql          # Triggers, views, stored procedures
-├── 03_seed_small.sql       # Static seed data (semesters, rooms, scholarships, departments)
+└── initdb/
+    ├── 01_schema.sql       # DDL — 16 tables, indexes, FK constraints
+    ├── 02_objects.sql      # Triggers, views, stored procedures
+    └── 03_seed_small.sql   # Static seed data (semesters, rooms, scholarships, departments)
 ├── generate_data.py        # Python/Faker script — generates ~130 000 rows
 └── queries/
     ├── level1.sql          # Basic SQL
